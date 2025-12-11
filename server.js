@@ -14,21 +14,40 @@ app.use(express.static('.')); // Serve frontend files
 
 // Database connection
 const dbPath = path.join(__dirname, 'MHC_Project.db');
-console.log('📂 Looking for database at:', dbPath);
+console.log('📂 Database path:', dbPath);
 
-if (!fs.existsSync(dbPath)) {
-    console.error('❌ ERROR: MHC_Project.db not found in:', __dirname);
-    console.error('   Make sure MHC_Project.db is in the same folder as server.js');
-    process.exit(1);
+// Debug: list files in current directory
+try {
+    const files = fs.readdirSync(__dirname);
+    console.log('📁 Files in directory:', files.filter(f => f.includes('.db') || f.includes('.sql')).join(', '));
+} catch (err) {
+    console.log('⚠️  Cannot list directory:', err.message);
 }
 
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('❌ Database connection failed:', err.message);
-        process.exit(1);
-    }
-    console.log('✅ Connected to MHC_Project.db');
-});
+let db;
+try {
+    db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
+        if (err) {
+            console.error('❌ Read-write connection failed:', err.message);
+            
+            // Try read-only as fallback
+            db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err2) => {
+                if (err2) {
+                    console.error('❌ Read-only also failed:', err2.message);
+                    console.log('💡 The database file might not exist on Render');
+                } else {
+                    console.log('✅ Connected to MHC_Project.db (read-only)');
+                }
+            });
+        } else {
+            console.log('✅ Connected to MHC_Project.db (read-write)');
+        }
+    });
+} catch (error) {
+    console.error('❌ Database initialization error:', error.message);
+    // Don't exit - let the server start without database
+    console.log('⚠️  Starting server without database connection');
+}
 
 // API: Execute SQL Query
 app.post('/api/execute', async (req, res) => {
