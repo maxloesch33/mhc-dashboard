@@ -26,7 +26,7 @@ class QueryDashboard {
     
     async checkServerStatus() {
         try {
-            const response = await fetch('http://localhost:3000/api/sql-files');
+            const response = await fetch('/api/execute');
             if (response.ok) {
                 document.getElementById('server-status').innerHTML = 
                     '<i class="fas fa-check-circle" style="color: #48bb78;"></i> Connected';
@@ -46,7 +46,7 @@ class QueryDashboard {
         
         try {
             // Get list of SQL files
-            const response = await fetch('http://localhost:3000/api/sql-files');
+            const response = await fetch('/api/execute');
             if (!response.ok) {
                 throw new Error('Failed to fetch SQL files list');
             }
@@ -94,7 +94,7 @@ class QueryDashboard {
     }
     
     async loadSQLFile(filename) {
-        const response = await fetch(`http://localhost:3000/api/sql-file/${encodeURIComponent(filename)}`);
+        const response = await fetch(`http://api/execute/${encodeURIComponent(filename)}`);
         if (!response.ok) {
             throw new Error(`Failed to load file: ${filename}`);
         }
@@ -372,7 +372,7 @@ class QueryDashboard {
         this.showMessage('Executing query against MHC_Project.db...', 'info');
         
         try {
-            const response = await fetch('http://localhost:3000/api/execute', {
+            const response = await fetch('/api/execute', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
