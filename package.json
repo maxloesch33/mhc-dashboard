@@ -1,0 +1,14 @@
+{
+  "name": "mhc-query-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard for MHC_Project.db",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.22.1",
+    "sqlite3": "^5.1.7"
+  }
+}

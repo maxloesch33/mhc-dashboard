@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHC Query Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/database.svg">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title">
+                <h1><i class="fas fa-database"></i> MHC Query Dashboard</h1>
+                <p class="subtitle">Execute queries against your MHC_Project.db database</p>
+            </div>
+            <div class="header-stats">
+                <div class="stat">
+                    <i class="fas fa-database"></i>
+                    <span>Database: <strong>MHC_Project.db</strong></span>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-code"></i>
+                    <span id="query-count">0 queries loaded</span>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-server"></i>
+                    <span id="server-status">Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <!-- Left Panel: Query Editor & Results -->
+            <div class="panel editor-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-edit"></i> Query Editor</h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-primary" onclick="loadSQLFiles()">
+                            <i class="fas fa-sync-alt"></i> Reload Queries
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="editor-container">
+                    <textarea id="sql-editor" placeholder="Click a query below to load it here, or type your own SQL..."></textarea>
+                    
+                    <div class="editor-controls">
+                        <button class="btn btn-run" id="run-button" onclick="executeQuery()">
+                            <i class="fas fa-play"></i> Run Query
+                        </button>
+                        <button class="btn btn-secondary" onclick="formatSQL()">
+                            <i class="fas fa-align-left"></i> Format
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyToClipboard()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearEditor()">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                    
+                    <div class="query-info" id="query-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>No query loaded. Click a query from the library.</span>
+                    </div>
+                </div>
+                
+                <!-- Results Panel -->
+                <div id="results-panel" class="results-panel">
+                    <div class="results-header">
+                        <h3><i class="fas fa-table"></i> Query Results</h3>
+                        <div class="results-actions">
+                            <span id="results-count">0 rows</span>
+                            <button class="btn btn-sm" onclick="exportToCSV()" id="export-btn">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div id="results-container" class="results-container">
+                        <div class="empty-results">
+                            <i class="fas fa-database"></i>
+                            <p>Results will appear here after running a query</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Query Library & Documents -->
+            <div class="panel library-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-book"></i> Query Library</h2>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="Search queries..." oninput="filterQueries()">
+                    </div>
+                </div>
+                
+                <div class="section-tabs" id="section-tabs">
+                    <!-- Tabs will be loaded by JavaScript -->
+                </div>
+                
+                <div id="queries-container" class="queries-container">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading your SQL queries...</p>
+                        <p class="loading-sub">Reading from sql_queries/ folder</p>
+                    </div>
+                </div>
+                
+                <!-- ========== DOCUMENTS SECTION ========== -->
+                <div class="documents-section">
+                    <h3><i class="fas fa-folder-open"></i> Project Documents</h3>
+                    <div class="pdf-grid">
+                        <a href="#" class="pdf-card" onclick="openPDF('Database_Design_&_Implementation.pdf', 'Database Design & Implementation', 'Your complete database design document with implementation details')">
+                            <div class="pdf-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="pdf-info">
+                                <div class="pdf-name">Database Design & Implementation</div>
+                                <div class="pdf-desc">Complete database design document with implementation details</div>
+                                <div class="pdf-size"><i class="fas fa-hashtag"></i> Database_Design_&_Implementation.pdf</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="pdf-card" onclick="openPDF('ER_Diagram.pdf', 'ER Diagram', 'Entity-Relationship diagram showing database structure')">
+                            <div class="pdf-icon">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <div class="pdf-info">
+                                <div class="pdf-name">ER Diagram</div>
+                                <div class="pdf-desc">Entity-Relationship diagram showing database structure</div>
+                                <div class="pdf-size"><i class="fas fa-hashtag"></i> ER_Diagram.pdf</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <!-- ========== END DOCUMENTS SECTION ========== -->
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>MHC Query Dashboard • Connected to <strong>MHC_Project.db</strong> • <span id="current-year"></span></p>
+            <p class="footer-info" id="footer-info">Ready to execute queries</p>
+        </footer>
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div id="pdf-modal" class="pdf-modal">
+        <div class="pdf-modal-content">
+            <div class="pdf-modal-header">
+                <h3><i class="fas fa-file-pdf"></i> <span id="pdf-title">Document Viewer</span></h3>
+                <div class="pdf-modal-actions">
+                    <button class="btn btn-sm" onclick="downloadCurrentPDF()" id="download-pdf-btn">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <button class="btn btn-sm" onclick="printCurrentPDF()">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="close-btn" onclick="closePDF()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="pdf-viewer-container">
+                <iframe id="pdf-viewer" title="PDF Viewer"></iframe>
+                <div class="pdf-loading" id="pdf-loading">
+                    <div class="spinner"></div>
+                    <p>Loading document...</p>
+                </div>
+            </div>
+            <div class="pdf-modal-footer">
+                <span id="pdf-filename"></span>
+                <div class="pdf-controls">
+                    <button class="btn-icon" onclick="zoomOutPDF()">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <span id="pdf-zoom">100%</span>
+                    <button class="btn-icon" onclick="zoomInPDF()">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+    <script>
+        // Set current year in footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Load SQL files when page loads
+        window.addEventListener('load', function() {
+            loadSQLFiles();
+            checkServerStatus();
+        });
+    </script>
+</body>
+</html>
